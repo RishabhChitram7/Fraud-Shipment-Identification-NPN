@@ -199,6 +199,34 @@ def main(args):
 
     print("\nDone.")
 
+# backend/fraud_detection.py (append this to the file)
+
+def run_detection(input_path, output_path=None, contamination=0.05, simulate_labels=False):
+    """
+    Programmatic wrapper so other Python code (Flask app) can call the ML pipeline.
+    Returns the path to the output CSV (result file).
+    """
+    import os
+    class Args:
+        pass
+
+    if output_path is None:
+        # put results near the backend/results folder
+        os.makedirs(os.path.join(os.path.dirname(__file__), "results"), exist_ok=True)
+        output_path = os.path.join(os.path.dirname(__file__), "results", "fraud_results.csv")
+
+    args = Args()
+    args.input = input_path
+    args.output = output_path
+    args.contamination = contamination
+    args.simulate_labels = simulate_labels
+
+    # If your main() returns or writes files, just call it:
+    main(args)
+
+    return output_path
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--input", required=True, help="Path to Delhivery CSV")
