@@ -220,10 +220,11 @@
 
             try {
                 // Make API call to Python backend
-                const response = await fetch('http://127.0.0.1:5000/upload', {
+                const response = await fetch('https://web-production-ecf9.up.railway.app/upload', {
                     method: 'POST',
                     body: formData
                 });
+              // Updated Railway backend
 
                 if (!response.ok) {
                     const error = await response.json();
