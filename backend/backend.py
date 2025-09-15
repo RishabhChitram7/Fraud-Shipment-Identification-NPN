@@ -1,4 +1,4 @@
-from fraud_detection import main as run_detection
+from backend.fraud_detection import main as run_detection
 import argparse
 import os
 
