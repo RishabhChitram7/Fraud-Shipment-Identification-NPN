@@ -372,7 +372,21 @@
 
         // Initialize the dashboard
         initializeEmptyState();
-    });
+      // Download CSV button functionality
+        const downloadBtn = document.getElementById('downloadCsvBtn');
+        
+        downloadBtn.addEventListener('click', () => {
+            const backendUrl = 'https://web-production-ecf9.up.railway.app'; // your deployed backend
+            const latestCsv = 'fraud_results.csv'; // name of the CSV saved on backend
+        
+            // Create a temporary link to trigger download
+            const link = document.createElement('a');
+            link.href = `${backendUrl}/results/${latestCsv}`;
+            link.download = latestCsv;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
   </script>
 </body>
 </html>
