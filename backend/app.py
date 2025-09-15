@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_file, send_from_directory
-from backend import detect_fraud
+from backend.fraud_detection import detect_fraud
 import os
 import pandas as pd
 from werkzeug.utils import secure_filename
