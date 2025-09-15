@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fraud Shipments Detection</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="dashboard-background">
+    <div class="background-pattern"></div>
+  </div>
+  
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">🛡️</div>
+          <span class="logo-text">FraudGuard</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <ul class="nav-list">
+          <li class="nav-item active">
+            <a href="#" class="nav-link">
+              <span class="nav-icon">📊</span>
+              <span class="nav-text">Dashboard</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Dashboard Grid -->
+      <div class="dashboard-grid">
+        <!-- Upload Card -->
+        <div class="dashboard-card upload-card">
+          <div class="card-header">
+            <div class="card-header-content">
+              <h3 class="card-title">
+                <span class="card-icon">📤</span>
+                Data Upload
+              </h3>
+              <p class="card-subtitle">Upload CSV files to detect anomalous shipments</p>
+            </div>
+          </div>
+          
+          <div class="card-content">
+            <form id="uploadForm" class="upload-form" novalidate>
+              <div class="file-input-wrapper">
+                <label for="csvFile" class="file-label" tabindex="0" aria-label="Choose CSV File">
+                  <div class="file-label-content">
+                    <svg class="icon-upload" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M14 2V8H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M16 13H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M16 17H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M10 9H9H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="file-label-text">Drop CSV file here or click to browse</span>
+                    <span class="file-label-hint">Supports .csv files up to 10MB</span>
+                  </div>
+                </label>
+                <input type="file" id="csvFile" accept=".csv" required aria-required="true" />
+                <span id="fileName" class="file-name" aria-live="polite">No file chosen</span>
+              </div>
+              
+              <button type="submit" class="btn-primary" aria-label="Upload and Detect Fraud">
+                <svg class="icon-upload-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M21 15V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M17 8L12 3L7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12 3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Analyze & Detect Fraud</span>
+              </button>
+            </form>
+
+            <div id="errorMessage" class="error-message" role="alert" aria-live="assertive" style="display:none;"></div>
+          </div>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon success">✅</div>
+            <div class="stat-content">
+              <span class="stat-number" id="processedFiles">0</span>
+              <span class="stat-label">Files Processed</span>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon warning">⚠️</div>
+            <div class="stat-content">
+              <span class="stat-number" id="anomaliesFound">0</span>
+              <span class="stat-label">Anomalies Detected</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="dashboard-card results-card">
+          <div class="card-header">
+            <div class="card-header-content">
+              <h3 class="card-title">
+                <span class="card-icon">🚨</span>
+                Detection Results
+              </h3>
+              <div id="resultsSummary" class="results-summary-badge" style="display:none;">
+                <span id="totalAnomalies" class="summary-count">0 anomalies detected</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card-content">
+            <div class="table-wrapper" role="region" aria-live="polite" aria-relevant="additions removals">
+              <table id="resultsTable" class="results-table" summary="List of shipments with their isolation scores and anomaly status">
+                <thead>
+                  <tr>
+                    <th scope="col">Shipment ID</th>
+                    <th scope="col">Isolation Score</th>
+                    <th scope="col">Risk Level</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="empty-state">
+                    <td colspan="4">
+                      <div class="empty-state-content">
+                        <span class="empty-state-icon">📋</span>
+                        <span class="empty-state-text">Upload a CSV file to see fraud detection results</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="loading-overlay" aria-live="polite" style="display:none;">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <h3 class="loading-title">Processing Your Data</h3>
+        <p class="loading-text">Analyzing patterns and detecting anomalies... ⏳</p>
+        <div class="loading-progress">
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Enhanced Fraud Detection Dashboard JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get DOM elements
+        const uploadForm = document.getElementById('uploadForm');
+        const csvFile = document.getElementById('csvFile');
+        const fileName = document.getElementById('fileName');
+        const loading = document.getElementById('loading');
+        const resultsTable = document.getElementById('resultsTable');
+        const tableBody = resultsTable.querySelector('tbody');
+        const resultsSummary = document.getElementById('resultsSummary');
+        const totalAnomalies = document.getElementById('totalAnomalies');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Additional elements for dashboard stats
+        const processedFilesCount = document.getElementById('processedFiles');
+        const anomaliesFoundCount = document.getElementById('anomaliesFound');
+
+        // Handle file selection
+        csvFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileName.textContent = file.name;
+                fileName.style.color = 'var(--color-success)';
+                fileName.style.fontWeight = '600';
+                clearError();
+            } else {
+                fileName.textContent = 'No file chosen';
+                fileName.style.color = 'var(--color-text-muted)';
+                fileName.style.fontWeight = 'normal';
+            }
+        });
+
+        // Handle form submission with real backend integration
+        uploadForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const file = csvFile.files[0];
+            if (!file) {
+                showError('Please select a CSV file first.');
+                return;
+            }
+
+            if (!file.name.toLowerCase().endsWith('.csv')) {
+                showError('Please select a valid CSV file.');
+                return;
+            }
+
+            // Clear any previous errors and results
+            clearError();
+            clearResults();
+
+            // Show loading state
+            showLoading();
+
+            // Prepare form data for backend
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                // Make API call to Python backend
+                const response = await fetch('http://127.0.0.1:5000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Server error occurred');
+                }
+
+                // Get the response data
+                const data = await response.json();
+
+                // Process and display the results
+                await processResults(data);
+
+                // Update dashboard stats
+                updateDashboardStats();
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error processing file: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        function showLoading() {
+            loading.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                clearError();
+            }, 5000);
+        }
+
+        function clearError() {
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+        }
+
+        function clearResults() {
+            // Clear table
+            tableBody.innerHTML = '<tr class="empty-state"><td colspan="4"><div class="empty-state-content"><span class="empty-state-icon">⏳</span><span class="empty-state-text">Processing data...</span></div></td></tr>';
+
+            // Hide results summary
+            resultsSummary.style.display = 'none';
+        }
+
+        async function processResults(data) {
+            console.log('Processing results:', data);
+
+            if (!Array.isArray(data)) {
+                throw new Error('Invalid data format received from server');
+            }
+
+            // Filter anomalies (fraud cases)
+            const anomalies = data.filter(row => {
+                return row.isolation_anomaly === 1 || row.isolation_anomaly === true;
+            });
+
+            // Sort by isolation score (ascending - lower scores are more anomalous)
+            const sortedAnomalies = anomalies.sort((a, b) => {
+                const scoreA = parseFloat(a.isolation_score);
+                const scoreB = parseFloat(b.isolation_score);
+                return scoreA - scoreB;
+            });
+
+            // Clear table
+            tableBody.innerHTML = '';
+
+            if (sortedAnomalies.length === 0) {
+                // No anomalies found
+                tableBody.innerHTML = '<tr class="empty-state"><td colspan="4"><div class="empty-state-content"><span class="empty-state-icon">✅</span><span class="empty-state-text">No anomalies detected - All shipments appear normal</span></div></td></tr>';
+                totalAnomalies.textContent = '0 anomalies detected';
+            } else {
+                // Add fraud rows to table
+                sortedAnomalies.forEach((row, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'fraud-row';
+
+                    const shipmentId = row.trip_uuid || row.tracking_id_auto || row.shipment_id || `SHIP-${String(index + 1).padStart(4, '0')}`;
+                    const isolationScore = parseFloat(row.isolation_score).toFixed(3);
+                    const riskLevel = getRiskLevel(isolationScore);
+                    const riskColor = getRiskColor(riskLevel);
+
+                    tr.innerHTML = `
+                        <td class="shipment-id">${shipmentId}</td>
+                        <td class="isolation-score">${isolationScore}</td>
+                        <td><span class="risk-badge ${riskColor}">${riskLevel}</span></td>
+                        <td><span class="status-badge fraud">🚨 Fraud Detected</span></td>
+                    `;
+
+                    tableBody.appendChild(tr);
+                });
+
+                // Update summary
+                const anomalyText = sortedAnomalies.length === 1 ? 'anomaly' : 'anomalies';
+                totalAnomalies.textContent = `${sortedAnomalies.length} ${anomalyText} detected`;
+            }
+
+            // Show results summary
+            resultsSummary.style.display = 'block';
+        }
+
+        function getRiskLevel(score) {
+            const numScore = parseFloat(score);
+            if (numScore < 0.3) return 'CRITICAL';
+            if (numScore < 0.5) return 'HIGH';
+            if (numScore < 0.7) return 'MEDIUM';
+            return 'LOW';
+        }
+
+        function getRiskColor(level) {
+            switch(level) {
+                case 'CRITICAL': return 'critical';
+                case 'HIGH': return 'high';
+                case 'MEDIUM': return 'medium';
+                case 'LOW': return 'low';
+                default: return 'medium';
+            }
+        }
+
+        function updateDashboardStats() {
+            // Update processed files counter
+            let currentFiles = parseInt(processedFilesCount.textContent) || 0;
+            processedFilesCount.textContent = currentFiles + 1;
+
+            // Update anomalies found (this will be updated in processResults)
+            const anomalyCount = document.querySelectorAll('.fraud-row').length;
+            anomaliesFoundCount.textContent = anomalyCount;
+        }
+
+        // Initialize empty state
+        function initializeEmptyState() {
+            tableBody.innerHTML = '<tr class="empty-state"><td colspan="4"><div class="empty-state-content"><span class="empty-state-icon">📋</span><span class="empty-state-text">Upload a CSV file to see fraud detection results</span></div></td></tr>';
+            resultsSummary.style.display = 'none';
+        }
+
+        // Initialize the dashboard
+        initializeEmptyState();
+    });
+  </script>
+</body>
+</html>
